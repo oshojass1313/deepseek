@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Web Browser</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Tool Container */
+        .tool-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        /* Heading */
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* Input Field */
+        #urlInput {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* Button Styling */
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Iframe Container */
+        .iframe-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .iframe-wrapper {
+            flex: 1 1 calc(50% - 10px);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            background-color: #fff;
+        }
+
+        .iframe-wrapper iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-container">
+        <h1>Custom Web Browser</h1>
+        <input type="text" id="urlInput" placeholder="Enter Website URL (e.g., https://example.com)">
+        <button class="button" id="addUrl">Add Website</button>
+        <button class="button" id="startScroll">Start Auto Scroll</button>
+        <button class="button" id="stopScroll">Stop Auto Scroll</button>
+        <button class="button" id="startClick">Start Auto Click</button>
+        <button class="button" id="stopClick">Stop Auto Click</button>
+
+        <!-- Iframe Container -->
+        <div class="iframe-container" id="iframeContainer"></div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const addUrlButton = document.getElementById('addUrl');
+        const startScrollButton = document.getElementById('startScroll');
+        const stopScrollButton = document.getElementById('stopScroll');
+        const startClickButton = document.getElementById('startClick');
+        const stopClickButton = document.getElementById('stopClick');
+        const iframeContainer = document.getElementById('iframeContainer');
+
+        let iframes = [];
+        let scrollIntervals = [];
+        let clickIntervals = [];
+
+        // Add website URL
+        addUrlButton.addEventListener('click', function () {
+            const url = urlInput.value;
+            if (url && isValidUrl(url)) {
+                addIframe(url);
+                urlInput.value = '';
+            } else {
+                alert('Please enter a valid URL (e.g., https://example.com)');
+            }
+        });
+
+        // Start auto scroll
+        startScrollButton.addEventListener('click', function () {
+            if (iframes.length > 0) {
+                stopAutoScroll(); // Stop previous scroll
+                iframes.forEach((iframe, index) => {
+                    startAutoScroll(iframe, index);
+                });
+            } else {
+                alert('Please add at least one website URL.');
+            }
+        });
+
+        // Stop auto scroll
+        stopScrollButton.addEventListener('click', function () {
+            stopAutoScroll();
+        });
+
+        // Start auto click
+        startClickButton.addEventListener('click', function () {
+            if (iframes.length > 0) {
+                stopAutoClick(); // Stop previous click
+                iframes.forEach((iframe, index) => {
+                    startAutoClick(iframe, index);
+                });
+            } else {
+                alert('Please add at least one website URL.');
+            }
+        });
+
+        // Stop auto click
+        stopClickButton.addEventListener('click', function () {
+            stopAutoClick();
+        });
+
+        // Function to add iframe
+        function addIframe(url) {
+            const iframeWrapper = document.createElement('div');
+            iframeWrapper.classList.add('iframe-wrapper');
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+
+            iframeWrapper.appendChild(iframe);
+            iframeContainer.appendChild(iframeWrapper);
+
+            iframes.push(iframe);
+        }
+
+        // Function to start auto scroll
+        function startAutoScroll(iframe, index) {
+            const speed = 50; // Adjust scroll speed
+
+            // Clear previous interval
+            if (scrollIntervals[index]) {
+                clearInterval(scrollIntervals[index]);
+            }
+
+            // Start new interval
+            scrollIntervals[index] = setInterval(() => {
+                try {
+                    if (iframe.contentWindow) {
+                        iframe.contentWindow.scrollBy(0, 1); // Scroll down
+                    }
+                } catch (error) {
+                    console.error('Scroll error:', error);
+                }
+            }, speed);
+        }
+
+        // Function to stop auto scroll
+        function stopAutoScroll() {
+            scrollIntervals.forEach(interval => clearInterval(interval));
+            scrollIntervals = [];
+        }
+
+        // Function to start auto click
+        function startAutoClick(iframe, index) {
+            const speed = 1000; // Adjust click speed (1 second)
+
+            // Clear previous interval
+            if (clickIntervals[index]) {
+                clearInterval(clickIntervals[index]);
+            }
+
+            // Start new interval
+            clickIntervals[index] = setInterval(() => {
+                try {
+                    if (iframe.contentWindow) {
+                        iframe.contentWindow.document.body.click(); // Auto click
+                    }
+                } catch (error) {
+                    console.error('Click error:', error);
+                }
+            }, speed);
+        }
+
+        // Function to stop auto click
+        function stopAutoClick() {
+            clickIntervals.forEach(interval => clearInterval(interval));
+            clickIntervals = [];
+        }
+
+        // Function to validate URL
+        function isValidUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
